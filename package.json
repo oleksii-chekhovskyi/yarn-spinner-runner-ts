@@ -1,7 +1,7 @@
 {
   "name": "yarn-spinner-runner-ts",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.1",
+  "private": false,
   "description": "TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter",
   "license": "MIT",
   "type": "module",
