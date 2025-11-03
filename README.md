@@ -1,7 +1,9 @@
 # yarn-spinner-runner-ts
 
 TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter.
-[Github repository](https://github.com/oleksii-chekhovskyi/yarn-spinner-runner-ts) for more information.
+
+* [Github repository](https://github.com/oleksii-chekhovskyi/yarn-spinner-runner-ts) for more information.
+* [NPM package](https://www.npmjs.com/package/yarn-spinner-runner-ts)
 
 ## References
 
