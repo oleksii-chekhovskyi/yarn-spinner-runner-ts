@@ -1,0 +1,55 @@
+{
+  "name": "yarn-spinner-runner-ts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "dev": "tsc -w -p tsconfig.json",
+    "lint": "eslint \"src/**/*.ts\" \"src/**/*.tsx\"",
+    "pretest": "npm run build",
+    "test": "node --test --enable-source-maps \"dist/tests/**/*.test.js\" \"dist/tests/index.test.js\"",
+    "demo": "vite --config examples/browser/vite.config.ts --host 0.0.0.0",
+    "demo:build": "vite build --config examples/browser/vite.config.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "keywords": [
+    "yarn-spinner",
+    "dialogue",
+    "parser",
+    "compiler",
+    "react"
+  ],
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@eslint/js": "^9.12.0",
+    "@typescript-eslint/parser": "^8.8.1",
+    "@typescript-eslint/eslint-plugin": "^8.8.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.12.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.3"
+  }
+}
+

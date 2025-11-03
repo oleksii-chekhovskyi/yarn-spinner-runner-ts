@@ -1,0 +1,43 @@
+title: Start
+---
+<<declare $score = 0>>
+Narrator: Welcome to the comprehensive Yarn test.
+<<set $score = 7>>
+<<if $score > 10>>
+    Narrator: High score branch.
+<<elseif $score > 5>>
+    Narrator: Medium score branch.
+<<else>>
+    Narrator: Low score branch.
+<<endif>>
+
+<<once>>
+    Narrator: This once block should only appear the first time.
+<<endonce>>
+
+-> Take the main path
+    Narrator: Proceeding on the main path.
+    <<jump NextScene>>
+-> Explore a detour
+    Narrator: Let's explore a detour first.
+    <<detour AsideInfo>>
+    Narrator: Back from detour.
+    <<jump NextScene>>
+===
+
+title: NextScene
+---
+Narrator: You have arrived in the next scene.
+-> Ask about features
+    Player: What can this system do?
+    Narrator: It supports options, conditions, once, jump, and detour.
+-> Finish
+    Narrator: Ending the scene.
+===
+
+title: AsideInfo
+---
+Narrator: This is detour content.
+===
+
+

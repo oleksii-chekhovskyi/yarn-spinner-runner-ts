@@ -1,0 +1,181 @@
+/* Yarn Dialogue System Styles */
+
+/* Main dialogue container */
+.yd-container {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scene container */
+.yd-scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background-color: rgba(26, 26, 46, 1);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 0.6s ease-in-out;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Scene background transition overlay */
+.yd-scene-next {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* Actor image */
+.yd-actor {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-height: 70%;
+  max-width: 40%;
+  object-fit: contain;
+  z-index: 1;
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+  pointer-events: none;
+}
+
+/* Dialogue box container */
+.yd-dialogue-box {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 20px;
+  width: calc(100% - 40px);
+  cursor: pointer;
+}
+
+.yd-dialogue-box.yd-text-box-end {
+  cursor: default;
+}
+
+/* Text dialogue box content */
+.yd-text-box {
+  background-color: rgba(30, 30, 60, 0.9);
+  border: 2px solid #4a9eff;
+  border-radius: 12px;
+  padding: 20px;
+  color: #ffffff;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 120px;
+}
+
+/* Speaker label */
+.yd-speaker {
+  background-color: #4a9eff;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Dialogue text */
+.yd-text {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.yd-text-with-speaker {
+  margin-top: 12px;
+}
+
+/* Continue indicator */
+.yd-continue {
+  text-align: right;
+  margin-top: 12px;
+  font-size: 24px;
+  color: #4a9eff;
+}
+
+/* Options container */
+.yd-options-container {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 20px;
+  width: calc(100% - 40px);
+}
+
+.yd-options-box {
+  background-color: rgba(30, 30, 60, 0.9);
+  border: 2px solid #4a9eff;
+  border-radius: 12px;
+  padding: 20px;
+  color: #ffffff;
+}
+
+.yd-options-title {
+  margin-bottom: 16px;
+  font-size: 16px;
+  color: #a0a0ff;
+}
+
+.yd-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Option button */
+.yd-option-button {
+  border: none;
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.1s, opacity 0.1s;
+  font-family: inherit;
+  background-color: #4a9eff;
+  color: #ffffff;
+}
+
+.yd-option-button:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+/* Command result */
+.yd-command {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+}
+
+/* Empty/ended dialogue */
+.yd-empty {
+  padding: 20px;
+  text-align: center;
+}
+

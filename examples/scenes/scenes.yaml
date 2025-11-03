@@ -1,0 +1,10 @@
+scene1:
+  background: /assets/backgrounds/start.png
+  actors:
+    user:
+      image: /assets/actors/user.png
+    narrator:
+      image: /assets/actors/narrator.png
+    npc:
+      image: /assets/actors/npc.png
+
