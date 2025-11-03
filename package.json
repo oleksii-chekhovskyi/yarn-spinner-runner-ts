@@ -1,7 +1,7 @@
 {
   "name": "yarn-spinner-runner-ts",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.1a",
+  "private": false,
   "description": "TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter",
   "license": "MIT",
   "type": "module",
@@ -13,8 +13,9 @@
     "clean": "rimraf dist",
     "dev": "tsc -w -p tsconfig.json",
     "lint": "eslint \"src/**/*.ts\" \"src/**/*.tsx\"",
+    "ts-check": "tsc -p tsconfig.json",
     "pretest": "npm run build",
-    "test": "node --test --enable-source-maps \"dist/tests/**/*.test.js\" \"dist/tests/index.test.js\"",
+    "test": "node scripts/run-tests.js",
     "demo": "vite --config examples/browser/vite.config.ts --host 0.0.0.0",
     "demo:build": "vite build --config examples/browser/vite.config.ts"
   },

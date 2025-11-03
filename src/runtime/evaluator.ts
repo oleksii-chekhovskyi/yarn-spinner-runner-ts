@@ -202,7 +202,6 @@ export class ExpressionEvaluator {
     
     // Try shorthand enum: .CaseName (requires context from variables)
     if (expr.startsWith(".") && expr.length > 1) {
-      const caseName = expr.slice(1);
       // Try to infer enum from variable types - for now, return as-is and let validation handle it
       return expr;
     }

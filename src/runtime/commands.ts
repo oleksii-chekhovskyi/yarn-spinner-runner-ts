@@ -162,7 +162,7 @@ export class CommandHandler {
           } else if (value.startsWith(".")) {
             // Shorthand - we can't infer enum type from declaration alone
             // Store as-is, will be resolved on first use if variable has enum type
-            value = value;
+            // Value is already set correctly above
           }
         }
         
@@ -177,7 +177,4 @@ export class CommandHandler {
     });
   }
 }
-
-// Forward reference type (avoid circular import)
-type ExpressionEvaluator = import("./evaluator").ExpressionEvaluator;
 

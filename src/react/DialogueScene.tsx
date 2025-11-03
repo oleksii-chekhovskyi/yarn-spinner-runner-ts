@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import type { SceneCollection, SceneConfig } from "../scene/types.js";
-import "./dialogue.css";
+// Note: CSS is imported in the browser demo entry point (examples/browser/main.tsx)
+// This prevents Node.js from trying to resolve CSS imports during tests
 
 export interface DialogueSceneProps {
   sceneName?: string;

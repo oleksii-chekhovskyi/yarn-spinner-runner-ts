@@ -1,6 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { DialogueExample } from "../../src/react/DialogueExample.js";
+// Import CSS for dialogue system
+import "../../src/react/dialogue.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {

@@ -15,6 +15,9 @@ module.exports = [
       sourceType: "module",
       globals: {
         console: "readonly",
+        window: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
       },
     },
     plugins: {

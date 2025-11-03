@@ -2,7 +2,8 @@ import React from "react";
 import type { RuntimeResult } from "../runtime/results.js";
 import { DialogueScene } from "./DialogueScene.js";
 import type { SceneCollection } from "../scene/types.js";
-import "./dialogue.css";
+// Note: CSS is imported in the browser demo entry point (examples/browser/main.tsx)
+// This prevents Node.js from trying to resolve CSS imports during tests
 
 export interface DialogueViewProps {
   result: RuntimeResult | null;

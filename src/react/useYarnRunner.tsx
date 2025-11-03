@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from "react";
-import { YarnRunner, type IRProgram, type RunnerOptions, type RuntimeResult } from "../runtime/runner.js";
+import { YarnRunner, type RunnerOptions } from "../runtime/runner.js";
+import type { IRProgram } from "../compile/ir.js";
+import type { RuntimeResult } from "../runtime/results.js";
 
 export function useYarnRunner(
   program: IRProgram,
