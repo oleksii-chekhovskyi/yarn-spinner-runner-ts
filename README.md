@@ -7,36 +7,37 @@ TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter
 
 ## References
 
-- Old JS parser: `bondage.js` (Yarn 2.x) — [GitHub](https://github.com/mnbroatch/bondage.js/tree/master/src)
-- Official compiler (C#): YarnSpinner.Compiler — [GitHub](https://github.com/YarnSpinnerTool/YarnSpinner/tree/main/YarnSpinner.Compiler)
-- Existing dialogue runner API: YarnBound — [GitHub](https://github.com/mnbroatch/yarn-bound?tab=readme-ov-file)
+* Old JS parser: `bondage.js` (Yarn 2.x) — [GitHub](https://github.com/mnbroatch/bondage.js/tree/master/src)
+* Official compiler (C#): YarnSpinner.Compiler — [GitHub](https://github.com/YarnSpinnerTool/YarnSpinner/tree/main/YarnSpinner.Compiler)
+* Existing dialogue runner API: YarnBound — [GitHub](https://github.com/mnbroatch/yarn-bound?tab=readme-ov-file)
 
 ## Features
 
-- ✅ Full Yarn Spinner 3.x syntax support
-- ✅ Parser for `.yarn` files → AST
-- ✅ Compiler: AST → Intermediate Representation (IR)
-- ✅ Runtime with `YarnRunner` class
-- ✅ React hook: `useYarnRunner()`
-- ✅ React components: `<DialogueView />`, `<DialogueScene />`, `<DialogueExample />`
-- ✅ Expression evaluator for conditions
-- ✅ Command system with built-in handlers (`<<set>>`, `<<declare>>`, etc.)
-- ✅ Scene system with backgrounds and actor images
-- ✅ Custom CSS styling via `&css{}` attributes
-- ✅ Built-in functions (`visited`, `random`, `min`, `max`, etc.)
-- ✅ Support for:
-  - Lines with speakers
-  - Options with indented bodies
-  - `<<if>>/<<elseif>>/<<else>>/<<endif>>` blocks
-  - `<<once>>...<<endonce>>` blocks
-  - `<<jump NodeName>>` commands
-  - `<<detour NodeName>>` commands
-  - Variables and expressions
-  - Enums (`<<enum>>` blocks)
-  - Smart variables (`<<declare $var = expr>>`)
-  - Node groups with `when:` conditions
-  - Tags and metadata on nodes, lines, and options
-  - Custom commands
+* ✅ Full Yarn Spinner 3.x syntax support
+* ✅ Parser for `.yarn` files → AST
+* ✅ Compiler: AST → Intermediate Representation (IR)
+* ✅ Runtime with `YarnRunner` class
+* ✅ React hook: `useYarnRunner()`
+* ✅ React components: `<DialogueView />`, `<DialogueScene />`, `<DialogueExample />`
+* ✅ Typing animation with configurable speeds, cursor styles, and auto-advance controls
+* ✅ Expression evaluator for conditions
+* ✅ Command system with built-in handlers (`<<set>>`, `<<declare>>`, etc.)
+* ✅ Scene system with backgrounds and actor images
+* ✅ Custom CSS styling via `&css{}` attributes
+* ✅ Built-in functions (`visited`, `random`, `min`, `max`, etc.)
+* ✅ Support for:
+  * Lines with speakers
+  * Options with indented bodies
+  * `<<if>>/<<elseif>>/<<else>>/<<endif>>` blocks
+  * `<<once>>...<<endonce>>` blocks
+  * `<<jump NodeName>>` commands
+  * `<<detour NodeName>>` commands
+  * Variables and expressions
+  * Enums (`<<enum>>` blocks)
+  * Smart variables (`<<declare $var = expr>>`)
+  * Node groups with `when:` conditions
+  * Tags and metadata on nodes, lines, and options
+  * Custom commands
 
 ## Installation
 
@@ -126,6 +127,10 @@ function App() {
 }
 ```
 
+### Typing Animation
+
+Set `enableTypingAnimation` on `DialogueView` to enable the `TypingText` component for typewriter-style delivery. Tweak props like `typingSpeed`, `showTypingCursor`, `cursorCharacter`, `autoAdvanceAfterTyping`, `autoAdvanceDelay`, and `pauseBeforeAdvance` to fine-tune behaviour, and see [Typing Animation (React)](./docs/typing-animation.md) for details.
+
 ### Browser Demo
 
 Run the interactive browser demo:
@@ -140,70 +145,70 @@ This starts a Vite dev server with a live Yarn script editor and dialogue system
 
 ### Parser
 
-- `parseYarn(text: string): YarnDocument` — Parse Yarn script text into AST
+* `parseYarn(text: string): YarnDocument` — Parse Yarn script text into AST
 
 ### Compiler
 
-- `compile(doc: YarnDocument, opts?: CompileOptions): IRProgram` — Compile AST to IR
+* `compile(doc: YarnDocument, opts?: CompileOptions): IRProgram` — Compile AST to IR
 
 ### Runtime
 
-- `YarnRunner(program: IRProgram, options: RunnerOptions)` — Dialogue runner class
-  - `currentResult: RuntimeResult | null` — Current dialogue state
-  - `advance(optionIndex?: number): void` — Advance dialogue
-  - `getVariable(name: string): unknown` — Get variable value
-  - `setVariable(name: string, value: unknown): void` — Set variable value
-  - `getVariables(): Readonly<Record<string, unknown>>` — Get all variables
+* `YarnRunner(program: IRProgram, options: RunnerOptions)` — Dialogue runner class
+  * `currentResult: RuntimeResult | null` — Current dialogue state
+  * `advance(optionIndex?: number): void` — Advance dialogue
+  * `getVariable(name: string): unknown` — Get variable value
+  * `setVariable(name: string, value: unknown): void` — Set variable value
+  * `getVariables(): Readonly<Record<string, unknown>>` — Get all variables
 
 ### React Components
 
-- `useYarnRunner(program: IRProgram, options: RunnerOptions)` — React hook
-  - Returns: `{ result: RuntimeResult | null, advance: (optionIndex?: number) => void, runner: YarnRunner }`
-- `<DialogueView result={...} onAdvance={...} scenes={...} />` — Ready-to-use dialogue component
-- `<DialogueScene sceneName={...} speaker={...} scenes={...} />` — Scene background and actor display
-- `<DialogueExample />` — Full example with editor
+* `useYarnRunner(program: IRProgram, options: RunnerOptions)` — React hook
+  * Returns: `{ result: RuntimeResult | null, advance: (optionIndex?: number) => void, runner: YarnRunner }`
+* `<DialogueView result={...} onAdvance={...} scenes={...} />` — Ready-to-use dialogue component
+* `<DialogueScene sceneName={...} speaker={...} scenes={...} />` — Scene background and actor display
+* `<DialogueExample />` — Full example with editor
 
 ### Scene System
 
-- `parseScenes(input: string | Record<string, unknown>): SceneCollection` — Parse YAML scene configuration
-- `SceneCollection` — Type for scene configuration
-- `SceneConfig` — Type for individual scene config
-- `ActorConfig` — Type for actor configuration
+* `parseScenes(input: string | Record<string, unknown>): SceneCollection` — Parse YAML scene configuration
+* `SceneCollection` — Type for scene configuration
+* `SceneConfig` — Type for individual scene config
+* `ActorConfig` — Type for actor configuration
 
 See [Scene and Actor Setup Guide](./docs/scenes-actors-setup.md) for detailed documentation.
 
 ### Expression Evaluator
 
-- `ExpressionEvaluator(variables, functions, enums?)` — Safe expression evaluator
-  - Supports: `===`, `!==`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`
-  - Operator aliases: `eq/is`, `neq`, `gt`, `lt`, `lte`, `gte`, `and`, `or`, `not`, `xor`
-  - Function calls: `functionName(arg1, arg2)`
-  - Variables, numbers, strings, booleans
-  - Enum support with shorthand (`MyEnum.Case`)
+* `ExpressionEvaluator(variables, functions, enums?)` — Safe expression evaluator
+  * Supports: `===`, `!==`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`
+  * Operator aliases: `eq/is`, `neq`, `gt`, `lt`, `lte`, `gte`, `and`, `or`, `not`, `xor`
+  * Function calls: `functionName(arg1, arg2)`
+  * Variables, numbers, strings, booleans
+  * Enum support with shorthand (`MyEnum.Case`)
 
 ### Commands
 
-- `CommandHandler` — Command handler registry
-  - Built-in: `<<set variable = value>>`, `<<declare $var = expr>>`
-  - Register custom handlers: `handler.register("mycommand", (args) => { ... })`
-- `parseCommand(content: string): ParsedCommand` — Parse command string
+* `CommandHandler` — Command handler registry
+  * Built-in: `<<set variable = value>>`, `<<declare $var = expr>>`
+  * Register custom handlers: `handler.register("mycommand", (args) => { ... })`
+* `parseCommand(content: string): ParsedCommand` — Parse command string
 
 ### Built-in Functions
 
 The runtime includes these built-in functions:
 
-- `visited(nodeName)` — Check if a node was visited
-- `visited_count(nodeName)` — Get visit count for a node
-- `random()` — Random float 0-1
-- `random_range(min, max)` — Random integer in range
-- `dice(sides)` — Roll a die
-- `min(a, b)`, `max(a, b)` — Min/max values
-- `round(n)`, `round_places(n, places)` — Rounding
-- `floor(n)`, `ceil(n)` — Floor/ceiling
-- `inc(n)`, `dec(n)` — Increment/decrement
-- `decimal(n)` — Convert to decimal
-- `int(n)` — Convert to integer
-- `string(n)`, `number(n)`, `bool(n)` — Type conversions
+* `visited(nodeName)` — Check if a node was visited
+* `visited_count(nodeName)` — Get visit count for a node
+* `random()` — Random float 0-1
+* `random_range(min, max)` — Random integer in range
+* `dice(sides)` — Roll a die
+* `min(a, b)`, `max(a, b)` — Min/max values
+* `round(n)`, `round_places(n, places)` — Rounding
+* `floor(n)`, `ceil(n)` — Floor/ceiling
+* `inc(n)`, `dec(n)` — Increment/decrement
+* `decimal(n)` — Convert to decimal
+* `int(n)` — Convert to integer
+* `string(n)`, `number(n)`, `bool(n)` — Type conversions
 
 ## Example Yarn Script
 
@@ -326,13 +331,13 @@ npm run demo:build # Build browser demo
 
 Tests are located in `src/tests/` and cover:
 
-- Basic dialogue flow
-- Options and branching
-- Variables and flow control
-- Commands (`<<set>>`, `<<declare>>`, etc.)
-- `<<once>>` blocks
-- `<<jump>>` and `<<detour>>`
-- Full featured Yarn scripts
+* Basic dialogue flow
+* Options and branching
+* Variables and flow control
+* Commands (`<<set>>`, `<<declare>>`, etc.)
+* `<<once>>` blocks
+* `<<jump>>` and `<<detour>>`
+* Full featured Yarn scripts
 
 Run tests:
 
@@ -344,21 +349,22 @@ npm test
 
 Additional documentation is available in the `docs/` folder:
 
-- [Lines, Nodes, and Options](./docs/lines-nodes-and-options.md)
-- [Options](./docs/options.md)
-- [Jumps](./docs/jumps.md)
-- [Detour](./docs/detour.md)
-- [Logic and Variables](./docs/logic-and-variables.md)
-- [Flow Control](./docs/flow-control.md)
-- [Once Blocks](./docs/once.md)
-- [Smart Variables](./docs/smart-variables.md)
-- [Enums](./docs/enums.md)
-- [Commands](./docs/commands.md)
-- [Functions](./docs/functions.md)
-- [Node Groups](./docs/node-groups.md)
-- [Tags and Metadata](./docs/tags-metadata.md)
-- [CSS Attribute](./docs/css-attribute.md)
-- [Scene and Actor Setup](./docs/scenes-actors-setup.md)
+* [Lines, Nodes, and Options](./docs/lines-nodes-and-options.md)
+* [Options](./docs/options.md)
+* [Jumps](./docs/jumps.md)
+* [Detour](./docs/detour.md)
+* [Logic and Variables](./docs/logic-and-variables.md)
+* [Flow Control](./docs/flow-control.md)
+* [Once Blocks](./docs/once.md)
+* [Smart Variables](./docs/smart-variables.md)
+* [Enums](./docs/enums.md)
+* [Commands](./docs/commands.md)
+* [Functions](./docs/functions.md)
+* [Node Groups](./docs/node-groups.md)
+* [Tags and Metadata](./docs/tags-metadata.md)
+* [CSS Attribute](./docs/css-attribute.md)
+* [Typing Animation (React)](./docs/typing-animation.md)
+* [Scene and Actor Setup](./docs/scenes-actors-setup.md)
 
 ## License
 

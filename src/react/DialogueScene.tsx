@@ -18,6 +18,7 @@ export function DialogueScene({ sceneName, speaker, scenes, className }: Dialogu
   const [backgroundOpacity, setBackgroundOpacity] = useState(1);
   const [nextBackground, setNextBackground] = useState<string | null>(null);
   const [lastSceneName, setLastSceneName] = useState<string | undefined>(undefined);
+  const [lastSpeaker, setLastSpeaker] = useState<string | undefined>(undefined);
   
   // Get scene config - use last scene if current node has no scene
   const activeSceneName = sceneName || lastSceneName;
@@ -26,6 +27,14 @@ export function DialogueScene({ sceneName, speaker, scenes, className }: Dialogu
 
   // Get all actors from the current scene
   const sceneActors = sceneConfig ? Object.keys(sceneConfig.actors) : [];
+  
+  // Track last speaker - update when speaker is provided, keep when undefined
+  useEffect(() => {
+    if (speaker) {
+      setLastSpeaker(speaker);
+    }
+    // Never clear speaker - keep it until a new one is explicitly set
+  }, [speaker]);
 
   // Handle background transitions
   useEffect(() => {
@@ -79,10 +88,16 @@ export function DialogueScene({ sceneName, speaker, scenes, className }: Dialogu
       )}
 
       {/* Actor image - show only the speaking actor, aligned to top */}
-      {sceneConfig && speaker && (() => {
+      {sceneConfig && (speaker || lastSpeaker) && (() => {
+        // Use current speaker if available, otherwise use last speaker to keep image visible
+        const activeSpeaker = speaker || lastSpeaker;
+        
+        // Type guard: ensure activeSpeaker is defined
+        if (!activeSpeaker) return null;
+        
         // Find the actor that matches the speaker (case-insensitive)
         const speakingActorName = sceneActors.find(
-          actorName => actorName.toLowerCase() === speaker.toLowerCase()
+          actorName => actorName.toLowerCase() === activeSpeaker.toLowerCase()
         );
         
         if (!speakingActorName) return null;

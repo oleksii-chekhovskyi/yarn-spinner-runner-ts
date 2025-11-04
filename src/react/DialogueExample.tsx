@@ -44,8 +44,9 @@ actors:
 `;
 
 export function DialogueExample() {
-  const [yarnText, setYarnText] = useState(DEFAULT_YARN);
+  const [yarnText] = useState(DEFAULT_YARN);
   const [error, setError] = useState<string | null>(null);
+  const enableTypingAnimation = true;
   
   const scenes: SceneCollection = useMemo(() => {
     try {
@@ -103,45 +104,18 @@ export function DialogueExample() {
           </div>
         )}
 
-        <DialogueView result={result} onAdvance={advance} scenes={scenes} />
-
-        <details style={{ marginTop: "30px", color: "#ffffff" }}>
-          <summary style={{ cursor: "pointer", padding: "10px", backgroundColor: "rgba(74, 158, 255, 0.2)", borderRadius: "8px" }}>
-            Edit Yarn Script
-          </summary>
-          <textarea
-            value={yarnText}
-            onChange={(e) => setYarnText(e.target.value)}
-            style={{
-              width: "100%",
-              minHeight: "300px",
-              marginTop: "10px",
-              padding: "12px",
-              fontFamily: "monospace",
-              fontSize: "14px",
-              backgroundColor: "#2a2a3e",
-              color: "#ffffff",
-              border: "1px solid #4a9eff",
-              borderRadius: "8px",
-            }}
-            spellCheck={false}
-          />
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              marginTop: "10px",
-              padding: "10px 20px",
-              backgroundColor: "#4a9eff",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            Reload to Restart
-          </button>
-        </details>
+        <DialogueView 
+          result={result} 
+          onAdvance={advance} 
+          scenes={scenes}
+          enableTypingAnimation={enableTypingAnimation}
+          showTypingCursor={true}
+          typingSpeed={20}
+          cursorCharacter="$"
+          autoAdvanceAfterTyping={true}
+          autoAdvanceDelay={2000}
+          pauseBeforeAdvance={enableTypingAnimation ? 1000 : 0}
+        />
       </div>
     </div>
   );
