@@ -20,6 +20,7 @@ TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter
 * ✅ React hook: `useYarnRunner()`
 * ✅ React components: `<DialogueView />`, `<DialogueScene />`, `<DialogueExample />`
 * ✅ Typing animation with configurable speeds, cursor styles, and auto-advance controls
+* ✅ Markup parsing with HTML formatting tags and CSS-ready spans
 * ✅ Expression evaluator for conditions
 * ✅ Command system with built-in handlers (`<<set>>`, `<<declare>>`, etc.)
 * ✅ Scene system with backgrounds and actor images (with configurable portrait cross-fades)
@@ -364,6 +365,7 @@ Additional documentation is available in the `docs/` folder:
 * [Tags and Metadata](./docs/tags-metadata.md)
 * [CSS Attribute](./docs/css-attribute.md)
 * [Typing Animation (React)](./docs/typing-animation.md)
+* [Markup (Yarn Spinner)](./docs/markup.md)
 * [Actor Image Transitions](./docs/actor-transition.md)
 * [Scene and Actor Setup](./docs/scenes-actors-setup.md)
 

@@ -1,4 +1,5 @@
 import type { IRProgram, IRInstruction, IRNode, IRNodeGroup } from "../compile/ir";
+import type { MarkupParseResult, MarkupSegment, MarkupWrapper } from "../markup/types.js";
 import type { RuntimeResult } from "./results.js";
 import { ExpressionEvaluator } from "./evaluator.js";
 import { CommandHandler, parseCommand } from "./commands.js";
@@ -205,15 +206,152 @@ export class YarnRunner {
     this.step();
   }
 
-  private interpolate(text: string): string {
-    return text.replace(/\{([^}]+)\}/g, (_m, expr) => {
+  private interpolate(text: string, markup?: MarkupParseResult): { text: string; markup?: MarkupParseResult } {
+    const evaluateExpression = (expr: string): string => {
       try {
-        const val = this.evaluator.evaluateExpression(String(expr));
-        return String(val ?? "");
+        const value = this.evaluator.evaluateExpression(expr.trim());
+        if (value === null || value === undefined) {
+          return "";
+        }
+        return String(value);
       } catch {
         return "";
       }
-    });
+    };
+
+    if (!markup) {
+      const interpolated = text.replace(/\{([^}]+)\}/g, (_m, expr) => evaluateExpression(expr));
+      return { text: interpolated };
+    }
+
+    const segments = markup.segments.filter((segment) => !segment.selfClosing);
+    const getWrappersAt = (index: number): MarkupWrapper[] => {
+      for (const segment of segments) {
+        if (segment.start <= index && index < segment.end) {
+          return segment.wrappers.map((wrapper) => ({
+            name: wrapper.name,
+            type: wrapper.type,
+            properties: { ...wrapper.properties },
+          }));
+        }
+      }
+      if (segments.length === 0) {
+        return [];
+      }
+      if (index > 0) {
+        return getWrappersAt(index - 1);
+      }
+      return segments[0].wrappers.map((wrapper) => ({
+        name: wrapper.name,
+        type: wrapper.type,
+        properties: { ...wrapper.properties },
+      }));
+    };
+
+    const resultChars: string[] = [];
+    const newSegments: MarkupSegment[] = [];
+    let currentSegment: MarkupSegment | null = null;
+
+    const wrappersEqual = (a: MarkupWrapper[], b: MarkupWrapper[]) => {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        const wa = a[i];
+        const wb = b[i];
+        if (wa.name !== wb.name || wa.type !== wb.type) return false;
+        const keysA = Object.keys(wa.properties);
+        const keysB = Object.keys(wb.properties);
+        if (keysA.length !== keysB.length) return false;
+        for (const key of keysA) {
+          if (wa.properties[key] !== wb.properties[key]) return false;
+        }
+      }
+      return true;
+    };
+
+    const flushSegment = () => {
+      if (currentSegment) {
+        newSegments.push(currentSegment);
+        currentSegment = null;
+      }
+    };
+
+    const appendCharWithWrappers = (char: string, wrappers: MarkupWrapper[]) => {
+      const index = resultChars.length;
+      resultChars.push(char);
+      const wrappersCopy = wrappers.map((wrapper) => ({
+        name: wrapper.name,
+        type: wrapper.type,
+        properties: { ...wrapper.properties },
+      }));
+      if (currentSegment && wrappersEqual(currentSegment.wrappers, wrappersCopy)) {
+        currentSegment.end = index + 1;
+      } else {
+        flushSegment();
+        currentSegment = { start: index, end: index + 1, wrappers: wrappersCopy };
+      }
+    };
+
+    const appendStringWithWrappers = (value: string, wrappers: MarkupWrapper[]) => {
+      if (!value) {
+        flushSegment();
+        return;
+      }
+      for (const ch of value) {
+        appendCharWithWrappers(ch, wrappers);
+      }
+    };
+
+    let i = 0;
+    while (i < text.length) {
+      const char = text[i];
+      if (char === '{') {
+        const close = text.indexOf('}', i + 1);
+        if (close === -1) {
+          appendCharWithWrappers(char, getWrappersAt(Math.max(0, Math.min(i, text.length - 1))));
+          i += 1;
+          continue;
+        }
+        const expr = text.slice(i + 1, close);
+        const evaluated = evaluateExpression(expr);
+        const wrappers = getWrappersAt(Math.max(0, Math.min(i, text.length - 1)));
+        appendStringWithWrappers(evaluated, wrappers);
+        i = close + 1;
+        continue;
+      }
+      appendCharWithWrappers(char, getWrappersAt(i));
+      i += 1;
+    }
+
+    flushSegment();
+    const interpolatedText = resultChars.join('');
+    const normalizedMarkup = this.normalizeMarkupResult({ text: interpolatedText, segments: newSegments });
+    return { text: interpolatedText, markup: normalizedMarkup };
+  }
+
+  private normalizeMarkupResult(result: MarkupParseResult): MarkupParseResult | undefined {
+    if (!result) return undefined;
+    if (result.segments.length === 0) {
+      return undefined;
+    }
+    const hasFormatting = result.segments.some(
+      (segment) => segment.wrappers.length > 0 || segment.selfClosing
+    );
+    if (!hasFormatting) {
+      return undefined;
+    }
+    return {
+      text: result.text,
+      segments: result.segments.map((segment) => ({
+        start: segment.start,
+        end: segment.end,
+        wrappers: segment.wrappers.map((wrapper) => ({
+          name: wrapper.name,
+          type: wrapper.type,
+          properties: { ...wrapper.properties },
+        })),
+        selfClosing: segment.selfClosing,
+      })),
+    };
   }
 
   private resumeBlock(): boolean {
@@ -229,9 +367,11 @@ export class YarnRunner {
         return true;
       }
       switch (ins.op) {
-        case "line":
-          this.emit({ type: "text", text: this.interpolate(ins.text), speaker: ins.speaker, tags: ins.tags, isDialogueEnd: false });
+        case "line": {
+          const { text: interpolatedText, markup: interpolatedMarkup } = this.interpolate(ins.text, ins.markup);
+          this.emit({ type: "text", text: interpolatedText, speaker: ins.speaker, tags: ins.tags, markup: interpolatedMarkup, isDialogueEnd: false });
           return true;
+        }
         case "command": {
           try {
             const parsed = parseCommand(ins.content);
@@ -244,7 +384,7 @@ export class YarnRunner {
           return true;
         }
         case "options": {
-          this.emit({ type: "options", options: ins.options.map((o) => ({ text: o.text, tags: o.tags })), isDialogueEnd: false });
+          this.emit({ type: "options", options: ins.options.map((o) => ({ text: o.text, tags: o.tags, markup: o.markup })), isDialogueEnd: false });
           return true;
         }
         case "if": {
@@ -294,9 +434,11 @@ export class YarnRunner {
       }
       this.ip++;
       switch (ins.op) {
-        case "line":
-          this.emit({ type: "text", text: this.interpolate(ins.text), speaker: ins.speaker, tags: ins.tags, nodeCss: resolved.css, scene: resolved.scene, isDialogueEnd: this.lookaheadIsEnd() });
+        case "line": {
+          const { text: interpolatedText, markup: interpolatedMarkup } = this.interpolate(ins.text, ins.markup);
+          this.emit({ type: "text", text: interpolatedText, speaker: ins.speaker, tags: ins.tags, markup: interpolatedMarkup, nodeCss: resolved.css, scene: resolved.scene, isDialogueEnd: this.lookaheadIsEnd() });
           return;
+        }
         case "command": {
           try {
             const parsed = parseCommand(ins.content);
@@ -327,7 +469,7 @@ export class YarnRunner {
           continue;
         }
         case "options": {
-          this.emit({ type: "options", options: ins.options.map((o: { text: string; tags?: string[]; css?: string }) => ({ text: o.text, tags: o.tags, css: o.css })), nodeCss: resolved.css, scene: resolved.scene, isDialogueEnd: this.lookaheadIsEnd() });
+          this.emit({ type: "options", options: ins.options.map((o: { text: string; tags?: string[]; css?: string; markup?: MarkupParseResult }) => ({ text: o.text, tags: o.tags, css: o.css, markup: o.markup })), nodeCss: resolved.css, scene: resolved.scene, isDialogueEnd: this.lookaheadIsEnd() });
           return;
         }
         case "if": {
@@ -368,10 +510,12 @@ export class YarnRunner {
       const ins = tempNode.instructions[idx++];
       if (!ins) break;
       switch (ins.op) {
-        case "line":
-          this.emit({ type: "text", text: ins.text, speaker: ins.speaker, isDialogueEnd: false });
+        case "line": {
+          const { text: interpolatedText, markup: interpolatedMarkup } = this.interpolate(ins.text, ins.markup);
+          this.emit({ type: "text", text: interpolatedText, speaker: ins.speaker, markup: interpolatedMarkup, isDialogueEnd: false });
           restore();
           return;
+        }
         case "command":
           try {
             const parsed = parseCommand(ins.content);
@@ -384,7 +528,7 @@ export class YarnRunner {
           restore();
           return;
         case "options":
-          this.emit({ type: "options", options: ins.options.map((o) => ({ text: o.text })), isDialogueEnd: false });
+          this.emit({ type: "options", options: ins.options.map((o) => ({ text: o.text, markup: o.markup })), isDialogueEnd: false });
           // Maintain context that options belong to main node at ip-1
           restore();
           return;

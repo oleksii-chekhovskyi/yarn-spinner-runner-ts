@@ -44,7 +44,7 @@ export function compile(doc: YarnDocument, opts: CompileOptions = {}): IRProgram
           case "Line":
             {
               const line = s as Line;
-              block.push({ op: "line", speaker: line.speaker, text: line.text, tags: ensureLineId(line.tags) });
+              block.push({ op: "line", speaker: line.speaker, text: line.text, tags: ensureLineId(line.tags), markup: line.markup });
             }
             break;
           case "Command":
@@ -72,7 +72,7 @@ export function compile(doc: YarnDocument, opts: CompileOptions = {}): IRProgram
             }
             block.push({
               op: "options",
-              options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, block: emitBlock(o.body) })),
+              options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, markup: o.markup, block: emitBlock(o.body) })),
             });
             break;
           }
@@ -114,7 +114,7 @@ export function compile(doc: YarnDocument, opts: CompileOptions = {}): IRProgram
               case "Line":
                 {
                   const line = s as Line;
-                  block.push({ op: "line", speaker: line.speaker, text: line.text, tags: ensureLineId(line.tags) });
+                  block.push({ op: "line", speaker: line.speaker, text: line.text, tags: ensureLineId(line.tags), markup: line.markup });
                 }
                 break;
               case "Command":
@@ -141,7 +141,7 @@ export function compile(doc: YarnDocument, opts: CompileOptions = {}): IRProgram
                 }
                 block.push({
                   op: "options",
-                  options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, block: emitBlock(o.body) })),
+                  options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, markup: o.markup, block: emitBlock(o.body) })),
                 });
                 break;
               }

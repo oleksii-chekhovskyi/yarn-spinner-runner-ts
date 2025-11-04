@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
+import type { MarkupParseResult } from "../markup/types.js";
+import { MarkupRenderer } from "./MarkupRenderer.js";
 
 export interface TypingTextProps {
   text: string;
+  markup?: MarkupParseResult;
   typingSpeed?: number;
   showCursor?: boolean;
   cursorCharacter?: string;
@@ -14,6 +17,7 @@ export interface TypingTextProps {
 
 export function TypingText({
   text,
+  markup,
   typingSpeed = 100,
   showCursor = true,
   cursorCharacter = "|",
@@ -23,7 +27,7 @@ export function TypingText({
   onComplete,
   disabled = false,
 }: TypingTextProps) {
-  const [displayedText, setDisplayedText] = useState("");
+  const [displayedLength, setDisplayedLength] = useState(disabled ? text.length : 0);
   const [cursorVisible, setCursorVisible] = useState(true);
   const cursorIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,8 +55,7 @@ export function TypingText({
   // Handle typing animation
   useEffect(() => {
     if (disabled) {
-      // If disabled, show full text immediately
-      setDisplayedText(text);
+      setDisplayedLength(text.length);
       if (onCompleteRef.current && text.length > 0) {
         onCompleteRef.current();
       }
@@ -60,7 +63,7 @@ export function TypingText({
     }
 
     // Reset when text changes
-    setDisplayedText("");
+    setDisplayedLength(0);
 
     if (text.length === 0) {
       if (onCompleteRef.current) {
@@ -72,38 +75,22 @@ export function TypingText({
     let index = 0;
     const typeNextCharacter = () => {
       if (index < text.length) {
-        index++;
-        setDisplayedText(text.slice(0, index));
-        
-       
-        // If speed is 0 or very small, type next character immediately (use requestAnimationFrame for smoother animation)
+        index += 1;
+        setDisplayedLength(index);
         if (typingSpeed <= 0) {
-          // Use requestAnimationFrame for instant/smooth rendering
-          requestAnimationFrame(() => {
-            typeNextCharacter();
-          });
+          requestAnimationFrame(typeNextCharacter);
         } else {
-          typingTimeoutRef.current = setTimeout(() => {
-            typeNextCharacter();
-          }, typingSpeed);
+          typingTimeoutRef.current = setTimeout(typeNextCharacter, typingSpeed);
         }
-      } else {
-        if (onCompleteRef.current) {
-          onCompleteRef.current();
-        }
+      } else if (onCompleteRef.current) {
+        onCompleteRef.current();
       }
     };
 
-    // Start typing
     if (typingSpeed <= 0) {
-      // Start immediately if speed is 0
-      requestAnimationFrame(() => {
-        typeNextCharacter();
-      });
+      requestAnimationFrame(typeNextCharacter);
     } else {
-      typingTimeoutRef.current = setTimeout(() => {
-        typeNextCharacter();
-      }, typingSpeed);
+      typingTimeoutRef.current = setTimeout(typeNextCharacter, typingSpeed);
     }
 
     return () => {
@@ -111,11 +98,19 @@ export function TypingText({
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [text, disabled]);
+  }, [text, disabled, typingSpeed]);
+
+  const visibleLength = markup ? Math.min(displayedLength, markup.text.length) : Math.min(displayedLength, text.length);
 
   return (
     <span className={className}>
-      <span>{displayedText}</span>
+      <span>
+        {markup ? (
+          <MarkupRenderer text={text} markup={markup} length={visibleLength} />
+        ) : (
+          text.slice(0, visibleLength)
+        )}
+      </span>
       {showCursor && !disabled && (
         <span
           className={`yd-typing-cursor ${cursorClassName}`}

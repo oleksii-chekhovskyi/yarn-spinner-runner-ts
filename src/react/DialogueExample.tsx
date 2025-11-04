@@ -9,6 +9,7 @@ import type { SceneCollection } from "../scene/types.js";
 const DEFAULT_YARN = `title: Start
 scene: scene1
 ---
+Narrator: [wave]hello[/wave] [b]hello[/b]  baarter
 Narrator: Welcome to yarn-spinner-ts!
 npc: This is a dialogue system powered by Yarn Spinner.
 Narrator: Click anywhere to continue, or choose an option below.

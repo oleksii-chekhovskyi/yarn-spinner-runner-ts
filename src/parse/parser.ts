@@ -1,4 +1,6 @@
 import { lex, Token } from "./lexer.js";
+import { parseMarkup, sliceMarkup } from "../markup/parser.js";
+import type { MarkupParseResult } from "../markup/types.js";
 import type {
   YarnDocument,
   YarnNode,
@@ -177,17 +179,33 @@ class Parser {
     }
     if (t.type === "TEXT") {
       const raw = this.take("TEXT").text;
-      const { cleanText: text, tags } = this.extractTags(raw);
-      const speakerMatch = text.match(/^([^:\s][^:]*)\s*:\s*(.*)$/);
+      const { cleanText: textWithoutTags, tags } = this.extractTags(raw);
+      const markup = parseMarkup(textWithoutTags);
+      const speakerMatch = markup.text.match(/^([^:\s][^:]*)\s*:\s*(.*)$/);
       if (speakerMatch) {
-        return { type: "Line", speaker: speakerMatch[1].trim(), text: speakerMatch[2], tags } as Line;
+        const messageText = speakerMatch[2];
+        const messageOffset = markup.text.length - messageText.length;
+        const slicedMarkup = sliceMarkup(markup, messageOffset);
+        const normalizedMarkup = this.normalizeMarkup(slicedMarkup);
+        return {
+          type: "Line",
+          speaker: speakerMatch[1].trim(),
+          text: messageText,
+          tags,
+          markup: normalizedMarkup,
+        } as Line;
       }
       // If/Else blocks use inline markup {if ...}
-      const trimmed = text.trim();
+      const trimmed = markup.text.trim();
       if (trimmed.startsWith("{if ") || trimmed === "{else}" || trimmed.startsWith("{else if ") || trimmed === "{endif}") {
-        return this.parseIfFromText(text);
+        return this.parseIfFromText(markup.text);
       }
-      return { type: "Line", text, tags } as Line;
+      return {
+        type: "Line",
+        text: markup.text,
+        tags,
+        markup: this.normalizeMarkup(markup),
+      } as Line;
     }
     throw new ParseError(`Unexpected token ${t.type}`);
   }
@@ -198,7 +216,8 @@ class Parser {
     while (this.at("OPTION")) {
       const raw = this.take("OPTION").text;
       const { cleanText: textWithAttrs, tags } = this.extractTags(raw);
-      const { text, css } = this.extractCss(textWithAttrs);
+      const { text: textWithoutCss, css } = this.extractCss(textWithAttrs);
+      const markup = parseMarkup(textWithoutCss);
       let body: Statement[] = [];
       if (this.at("INDENT")) {
         this.take("INDENT");
@@ -206,11 +225,44 @@ class Parser {
         this.take("DEDENT");
         while (this.at("EMPTY")) this.i++;
       }
-      options.push({ type: "Option", text, body, tags, css });
+      options.push({
+        type: "Option",
+        text: markup.text,
+        body,
+        tags,
+        css,
+        markup: this.normalizeMarkup(markup),
+      });
       // Consecutive options belong to the same group; break on non-OPTION
       while (this.at("EMPTY")) this.i++;
     }
     return { type: "OptionGroup", options };
+  }
+
+  private normalizeMarkup(result: MarkupParseResult): MarkupParseResult | undefined {
+    if (!result) return undefined;
+    if (result.segments.length === 0) {
+      return undefined;
+    }
+    const hasFormatting = result.segments.some(
+      (segment) => segment.wrappers.length > 0 || segment.selfClosing
+    );
+    if (!hasFormatting) {
+      return undefined;
+    }
+    return {
+      text: result.text,
+      segments: result.segments.map((segment) => ({
+        start: segment.start,
+        end: segment.end,
+        wrappers: segment.wrappers.map((wrapper) => ({
+          name: wrapper.name,
+          type: wrapper.type,
+          properties: { ...wrapper.properties },
+        })),
+        selfClosing: segment.selfClosing,
+      })),
+    };
   }
 
   private extractTags(input: string): { cleanText: string; tags?: string[] } {

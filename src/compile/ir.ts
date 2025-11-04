@@ -1,3 +1,4 @@
+import type { MarkupParseResult } from "../markup/types.js";
 export type IRProgram = {
   enums: Record<string, string[]>; // enum name -> cases
   nodes: Record<string, IRNode | IRNodeGroup>; // can be single node or group
@@ -17,11 +18,11 @@ export type IRNodeGroup = {
 };
 
 export type IRInstruction =
-  | { op: "line"; speaker?: string; text: string; tags?: string[] }
+  | { op: "line"; speaker?: string; text: string; tags?: string[]; markup?: MarkupParseResult }
   | { op: "command"; content: string }
   | { op: "jump"; target: string }
   | { op: "detour"; target: string }
-  | { op: "options"; options: Array<{ text: string; tags?: string[]; css?: string; block: IRInstruction[] }> }
+  | { op: "options"; options: Array<{ text: string; tags?: string[]; css?: string; markup?: MarkupParseResult; block: IRInstruction[] }> }
   | { op: "if"; branches: Array<{ condition: string | null; block: IRInstruction[] }> }
   | { op: "once"; id: string; block: IRInstruction[] };
 

@@ -3,6 +3,7 @@ import type { RuntimeResult } from "../runtime/results.js";
 import { DialogueScene } from "./DialogueScene.js";
 import type { SceneCollection } from "../scene/types.js";
 import { TypingText } from "./TypingText.js";
+import { MarkupRenderer } from "./MarkupRenderer.js";
 // Note: CSS is imported in the browser demo entry point (examples/browser/main.tsx)
 // This prevents Node.js from trying to resolve CSS imports during tests
 
@@ -198,6 +199,7 @@ export function DialogueView({
                 <TypingText
                   key={currentTextKey}
                   text={displayText}
+                  markup={result.markup}
                   typingSpeed={typingSpeed}
                   showCursor={showTypingCursor}
                   cursorCharacter={cursorCharacter}
@@ -205,7 +207,7 @@ export function DialogueView({
                   onComplete={() => setTypingComplete(true)}
                 />
               ) : (
-                displayText
+                <MarkupRenderer text={displayText} markup={result.markup} />
               )}
             </p>
             {shouldShowContinue && (
@@ -242,7 +244,7 @@ export function DialogueView({
                     onClick={() => onAdvance(index)}
                     style={optionStyles} // Only apply dynamic option CSS
                   >
-                    {option.text}
+                    <MarkupRenderer text={option.text} markup={option.markup} />
                   </button>
                 );
               })}

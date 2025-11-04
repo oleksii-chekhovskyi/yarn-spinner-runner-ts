@@ -36,11 +36,14 @@ export type Statement =
   | Detour
   | EnumBlock;
 
+import type { MarkupParseResult } from "../markup/types.js";
+
 export interface Line {
   type: "Line";
   speaker?: string;
   text: string;
   tags?: string[];
+  markup?: MarkupParseResult;
 }
 
 export interface Command {
@@ -69,6 +72,7 @@ export interface Option {
   body: Statement[]; // executed if chosen
   tags?: string[];
   css?: string; // Custom CSS style for option
+  markup?: MarkupParseResult;
 }
 
 export interface IfBlock {
