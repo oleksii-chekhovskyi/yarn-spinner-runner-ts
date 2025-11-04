@@ -10,7 +10,7 @@ const DEFAULT_YARN = `title: Start
 scene: scene1
 ---
 Narrator: Welcome to yarn-spinner-ts!
-Narrator: This is a dialogue system powered by Yarn Spinner.
+npc: This is a dialogue system powered by Yarn Spinner.
 Narrator: Click anywhere to continue, or choose an option below.
 -> Start the adventure &css{backgroundColor: #4a9eff; color: white;}
     Narrator: Great! Let's begin your journey.
@@ -23,7 +23,7 @@ Narrator: Click anywhere to continue, or choose an option below.
 
 title: NextScene
 ---
-blablabla
+npc: blablabla
 Narrator: You've reached the next scene!
 Narrator: The dialogue system supports rich features like:
 Narrator: • Variables and expressions
@@ -114,6 +114,7 @@ export function DialogueExample() {
           cursorCharacter="$"
           autoAdvanceAfterTyping={true}
           autoAdvanceDelay={2000}
+          actorTransitionDuration={1000} 
           pauseBeforeAdvance={enableTypingAnimation ? 1000 : 0}
         />
       </div>

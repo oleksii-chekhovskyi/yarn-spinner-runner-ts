@@ -112,6 +112,7 @@ Once a scene is set, the background persists across nodes until a new scene is s
 - Actor images are matched by name (case-insensitive)
 - The speaking actor's image appears at the top center of the scene
 - If no matching actor is found in the scene configuration, only the text is shown
+- The portrait transition duration defaults to 350 ms and can be adjusted by passing `actorTransitionDuration` (in milliseconds) to either `<DialogueScene />` or `<DialogueView />`
 
 ### Actor Matching
 

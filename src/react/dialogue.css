@@ -51,10 +51,23 @@
   max-height: 70%;
   max-width: 40%;
   object-fit: contain;
-  z-index: 1;
-  transition: opacity 0.3s ease-in-out;
-  opacity: 1;
+  opacity: 0;
+  transition: opacity var(--yd-actor-transition, 0.35s) ease-in-out;
   pointer-events: none;
+  z-index: 1;
+  will-change: opacity;
+}
+
+.yd-actor--current {
+  z-index: 2;
+}
+
+.yd-actor--previous {
+  z-index: 1;
+}
+
+.yd-actor--visible {
+  opacity: 1;
 }
 
 /* Dialogue box container */

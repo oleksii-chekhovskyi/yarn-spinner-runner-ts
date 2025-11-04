@@ -11,6 +11,7 @@ export interface DialogueViewProps {
   onAdvance: (optionIndex?: number) => void;
   className?: string;
   scenes?: SceneCollection;
+  actorTransitionDuration?: number;
   // Typing animation options
   enableTypingAnimation?: boolean;
   typingSpeed?: number;
@@ -85,6 +86,7 @@ export function DialogueView({
   onAdvance,
   className,
   scenes,
+  actorTransitionDuration = 350,
   enableTypingAnimation = false,
   typingSpeed = 50, // Characters per second (50 cps = ~20ms per character)
   showTypingCursor = true,
@@ -174,7 +176,12 @@ export function DialogueView({
 
     return (
       <div className="yd-container">
-        <DialogueScene sceneName={sceneName} speaker={speaker} scenes={sceneCollection} />
+        <DialogueScene
+          sceneName={sceneName}
+          speaker={speaker}
+          scenes={sceneCollection}
+          actorTransitionDuration={actorTransitionDuration}
+        />
         <div
           className={`yd-dialogue-box ${result.isDialogueEnd ? "yd-text-box-end" : ""} ${className || ""}`}
           style={nodeStyles} // Only apply dynamic node CSS
@@ -216,7 +223,12 @@ export function DialogueView({
     const nodeStyles = parseCss(result.nodeCss);
     return (
       <div className="yd-container">
-        <DialogueScene sceneName={sceneName} speaker={speaker} scenes={sceneCollection} />
+        <DialogueScene
+          sceneName={sceneName}
+          speaker={speaker}
+          scenes={sceneCollection}
+          actorTransitionDuration={actorTransitionDuration}
+        />
         <div className={`yd-options-container ${className || ""}`}>
           <div className="yd-options-box" style={nodeStyles}>
             <div className="yd-options-title">Choose an option:</div>

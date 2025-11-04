@@ -22,7 +22,7 @@ TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter
 * ✅ Typing animation with configurable speeds, cursor styles, and auto-advance controls
 * ✅ Expression evaluator for conditions
 * ✅ Command system with built-in handlers (`<<set>>`, `<<declare>>`, etc.)
-* ✅ Scene system with backgrounds and actor images
+* ✅ Scene system with backgrounds and actor images (with configurable portrait cross-fades)
 * ✅ Custom CSS styling via `&css{}` attributes
 * ✅ Built-in functions (`visited`, `random`, `min`, `max`, etc.)
 * ✅ Support for:
@@ -165,7 +165,7 @@ This starts a Vite dev server with a live Yarn script editor and dialogue system
 * `useYarnRunner(program: IRProgram, options: RunnerOptions)` — React hook
   * Returns: `{ result: RuntimeResult | null, advance: (optionIndex?: number) => void, runner: YarnRunner }`
 * `<DialogueView result={...} onAdvance={...} scenes={...} />` — Ready-to-use dialogue component
-* `<DialogueScene sceneName={...} speaker={...} scenes={...} />` — Scene background and actor display
+* `<DialogueScene sceneName={...} speaker={...} scenes={...} actorTransitionDuration={...} /> — Scene background, actor display, and portrait transitions` — Scene background and actor display
 * `<DialogueExample />` — Full example with editor
 
 ### Scene System
@@ -364,6 +364,7 @@ Additional documentation is available in the `docs/` folder:
 * [Tags and Metadata](./docs/tags-metadata.md)
 * [CSS Attribute](./docs/css-attribute.md)
 * [Typing Animation (React)](./docs/typing-animation.md)
+* [Actor Image Transitions](./docs/actor-transition.md)
 * [Scene and Actor Setup](./docs/scenes-actors-setup.md)
 
 ## License
