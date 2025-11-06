@@ -1,18 +1,24 @@
 import React, { useRef, useEffect, useState } from "react";
-import type { RuntimeResult } from "../runtime/results.js";
 import { DialogueScene } from "./DialogueScene.js";
 import type { SceneCollection } from "../scene/types.js";
 import { TypingText } from "./TypingText.js";
+import { useYarnRunner } from "./useYarnRunner.js";
 import { MarkupRenderer } from "./MarkupRenderer.js";
 // Note: CSS is imported in the browser demo entry point (examples/browser/main.tsx)
 // This prevents Node.js from trying to resolve CSS imports during tests
 
+import type { IRProgram } from "../compile/ir.js";
+
 export interface DialogueViewProps {
-  result: RuntimeResult | null;
-  onAdvance: (optionIndex?: number) => void;
+  program: IRProgram;
+  startNode?: string;
   className?: string;
   scenes?: SceneCollection;
   actorTransitionDuration?: number;
+  // Custom functions and callbacks
+  functions?: Record<string, (...args: unknown[]) => unknown>;
+  variables?: Record<string, unknown>;
+  onStoryEnd?: (info: { variables: Readonly<Record<string, unknown>>; storyEnd: true }) => void;
   // Typing animation options
   enableTypingAnimation?: boolean;
   typingSpeed?: number;
@@ -83,11 +89,14 @@ function parseCss(cssStr: string | undefined): React.CSSProperties {
 }
 
 export function DialogueView({
-  result,
-  onAdvance,
+  program,
+  startNode = "Start",
   className,
   scenes,
   actorTransitionDuration = 350,
+  functions,
+  variables,
+  onStoryEnd,
   enableTypingAnimation = false,
   typingSpeed = 50, // Characters per second (50 cps = ~20ms per character)
   showTypingCursor = true,
@@ -96,13 +105,48 @@ export function DialogueView({
   autoAdvanceDelay = 500,
   pauseBeforeAdvance = 0,
 }: DialogueViewProps) {
+  const { result, advance, runner } = useYarnRunner(program, {
+    startAt: startNode,
+    functions,
+    variables,
+  });
   const sceneName = result?.type === "text" || result?.type === "options" ? result.scene : undefined;
   const speaker = result?.type === "text" ? result.speaker : undefined;
   const sceneCollection = scenes || { scenes: {} };
+
   const [typingComplete, setTypingComplete] = useState(false);
   const [currentTextKey, setCurrentTextKey] = useState(0);
   const [skipTyping, setSkipTyping] = useState(false);
   const advanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const storyEndTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    storyEndTriggeredRef.current = false;
+  }, [program, startNode]);
+
+  useEffect(() => {
+    if (!result || result.type !== "command") {
+      return;
+    }
+    const timer = setTimeout(() => advance(), 50);
+    return () => clearTimeout(timer);
+  }, [result, advance]);
+
+  useEffect(() => {
+    if (!onStoryEnd || !result || storyEndTriggeredRef.current) {
+      return;
+    }
+    if (!result.isDialogueEnd) {
+      return;
+    }
+    if (result.type === "options") {
+      return;
+    }
+
+    storyEndTriggeredRef.current = true;
+    const variablesSnapshot = Object.freeze({ ...(runner?.getVariables?.() ?? {}) });
+    onStoryEnd({ storyEnd: true, variables: variablesSnapshot });
+  }, [result, onStoryEnd, runner]);
 
   // Reset typing completion when text changes
   useEffect(() => {
@@ -129,11 +173,11 @@ export function DialogueView({
       !result.isDialogueEnd
     ) {
       const timer = setTimeout(() => {
-        onAdvance();
+        advance();
       }, autoAdvanceDelay);
       return () => clearTimeout(timer);
     }
-  }, [autoAdvanceAfterTyping, typingComplete, result, onAdvance, autoAdvanceDelay]);
+  }, [autoAdvanceAfterTyping, typingComplete, result, advance, autoAdvanceDelay]);
 
   if (!result) {
     return (
@@ -166,11 +210,11 @@ export function DialogueView({
         // Apply pause before advance if configured
         if (pauseBeforeAdvance > 0) {
           advanceTimeoutRef.current = setTimeout(() => {
-            onAdvance();
+            advance();
             advanceTimeoutRef.current = null;
           }, pauseBeforeAdvance);
         } else {
-          onAdvance();
+          advance();
         }
       }
     };
@@ -241,7 +285,7 @@ export function DialogueView({
                   <button
                     key={index}
                     className="yd-option-button"
-                    onClick={() => onAdvance(index)}
+                    onClick={() => advance(index)}
                     style={optionStyles} // Only apply dynamic option CSS
                   >
                     <MarkupRenderer text={option.text} markup={option.markup} />
@@ -257,12 +301,6 @@ export function DialogueView({
 
   // Command result - auto-advance
   if (result.type === "command") {
-    // Auto-advance commands after a brief moment
-    React.useEffect(() => {
-      const timer = setTimeout(() => onAdvance(), 50);
-      return () => clearTimeout(timer);
-    }, [result.command, onAdvance]);
-
     return (
       <div className={`yd-command ${className || ""}`}>
         <p>Executing: {result.command}</p>
@@ -272,4 +310,3 @@ export function DialogueView({
 
   return null;
 }
-

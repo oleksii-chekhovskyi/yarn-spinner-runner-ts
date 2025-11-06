@@ -43,6 +43,23 @@ test("parseMarkup handles self-closing tags", () => {
   );
 });
 
+test("parseMarkup handles br line breaks", () => {
+  const result = parseMarkup("Line one[br]Line two[/br][br/]Line three");
+  strictEqual(result.text, "Line oneLine twoLine three");
+
+  const brSegments = result.segments.filter(
+    (segment) => segment.selfClosing && segment.wrappers.some((wrapper) => wrapper.name === "br")
+  );
+
+  strictEqual(brSegments.length, 2);
+  ok(
+    brSegments.every((segment) =>
+      segment.wrappers.some((wrapper) => wrapper.name === "br" && wrapper.type === "default")
+    ),
+    "Expected br wrappers to use default HTML type"
+  );
+});
+
 test("parseMarkup respects nomarkup blocks and escaping", () => {
   const result = parseMarkup(`[nomarkup][b] raw [/b][/nomarkup] and \\[escaped\\]`);
   strictEqual(result.text, "[b] raw [/b] and [escaped]");
@@ -59,4 +76,3 @@ function findSegment(result: MarkupParseResult, target: string) {
     return text === target;
   });
 }
-

@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { parseYarn } from "../parse/parser.js";
 import { compile } from "../compile/compiler.js";
-import { useYarnRunner } from "./useYarnRunner.js";
 import { DialogueView } from "./DialogueView.js";
 import { parseScenes } from "../scene/parser.js";
 import type { SceneCollection } from "../scene/types.js";
@@ -9,8 +8,8 @@ import type { SceneCollection } from "../scene/types.js";
 const DEFAULT_YARN = `title: Start
 scene: scene1
 ---
-Narrator: [wave]hello[/wave] [b]hello[/b]  baarter
-Narrator: Welcome to yarn-spinner-ts!
+Narrator: Welcome to [b]yarn-spinner-ts[/b], {$playerName}!
+Narrator: Current street cred: {$reputation}
 npc: This is a dialogue system powered by Yarn Spinner.
 Narrator: Click anywhere to continue, or choose an option below.
 -> Start the adventure &css{backgroundColor: #4a9eff; color: white;}
@@ -47,7 +46,7 @@ actors:
 export function DialogueExample() {
   const [yarnText] = useState(DEFAULT_YARN);
   const [error, setError] = useState<string | null>(null);
-  const enableTypingAnimation = true;
+  const enableTypingAnimation = false;
   
   const scenes: SceneCollection = useMemo(() => {
     try {
@@ -69,13 +68,10 @@ export function DialogueExample() {
     }
   }, [yarnText]);
 
-  const { result, advance } = useYarnRunner(
-    program || { nodes: {}, enums: {} },
-    {
-      startAt: "Start",
-      variables: {},
-    }
-  );
+  const customFunctions = useMemo(() => ({
+    greet: () => {console.log('test')},
+    double: (num: unknown) => Number(num) * 2
+  }), []);
 
   return (
     <div
@@ -106,9 +102,10 @@ export function DialogueExample() {
         )}
 
         <DialogueView 
-          result={result} 
-          onAdvance={advance} 
+          program={program || { nodes: {}, enums: {} }}
+          startNode="Start"
           scenes={scenes}
+          variables={{ playerName: "V", reputation: 3 }}
           enableTypingAnimation={enableTypingAnimation}
           showTypingCursor={true}
           typingSpeed={20}
@@ -117,6 +114,10 @@ export function DialogueExample() {
           autoAdvanceDelay={2000}
           actorTransitionDuration={1000} 
           pauseBeforeAdvance={enableTypingAnimation ? 1000 : 0}
+          onStoryEnd={(info) => {
+            console.log('Story ended with variables:', info.variables);
+          }}
+          functions={customFunctions}
         />
       </div>
     </div>

@@ -76,6 +76,10 @@ const runner = new YarnRunner(program, {
   handleCommand: (cmd, parsed) => {
     console.log("Command:", cmd);
   },
+  onStoryEnd: ({ variables, storyEnd }) => {
+    console.log("Story ended!", storyEnd);
+    console.log("Final variables:", variables);
+  },
 });
 
 // Get current result
@@ -160,6 +164,7 @@ This starts a Vite dev server with a live Yarn script editor and dialogue system
   * `getVariable(name: string): unknown` — Get variable value
   * `setVariable(name: string, value: unknown): void` — Set variable value
   * `getVariables(): Readonly<Record<string, unknown>>` — Get all variables
+  * `onStoryEnd?: (payload: { variables: Readonly<Record<string, unknown>>; storyEnd: true }) => void` — Handler called when story reaches its end, providing final variable state
 
 ### React Components
 

@@ -1,6 +1,7 @@
 import type { MarkupParseResult, MarkupSegment, MarkupValue, MarkupWrapper } from "./types.js";
 
-const DEFAULT_HTML_TAGS = new Set(["b", "em", "small", "strong", "sub", "sup", "ins", "del", "mark"]);
+const DEFAULT_HTML_TAGS = new Set(["b", "em", "small", "strong", "sub", "sup", "ins", "del", "mark", "br"]);
+const SELF_CLOSING_TAGS = new Set(["br"]);
 
 interface StackEntry {
   name: string;
@@ -125,7 +126,8 @@ export function parseMarkup(input: string): MarkupParseResult {
       rest = rest.slice(attrMatch[0].length).trim();
     }
 
-    return { kind, name, properties };
+    const finalKind: ParsedTag["kind"] = kind === "self" || SELF_CLOSING_TAGS.has(name) ? "self" : kind;
+    return { kind: finalKind, name, properties };
   };
 
   const parseAttributeValue = (raw: string): MarkupValue => {
@@ -223,6 +225,10 @@ export function parseMarkup(input: string): MarkupParseResult {
 
       // closing tag
       if (stack.length === 0) {
+        if (SELF_CLOSING_TAGS.has(parsed.name)) {
+          i = closeIndex + 1;
+          continue;
+        }
         appendLiteral(originalText);
         i = closeIndex + 1;
         continue;
@@ -231,6 +237,10 @@ export function parseMarkup(input: string): MarkupParseResult {
       if (top.name === parsed.name) {
         flushCurrentSegment();
         stack.pop();
+        i = closeIndex + 1;
+        continue;
+      }
+      if (SELF_CLOSING_TAGS.has(parsed.name)) {
         i = closeIndex + 1;
         continue;
       }

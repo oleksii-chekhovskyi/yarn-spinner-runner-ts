@@ -29,6 +29,14 @@ export function parseCommand(content: string): ParsedCommand {
     const char = trimmed[i];
 
     if ((char === '"' || char === "'") && !inQuotes) {
+      // If we have accumulated non-quoted content (e.g. a function name and "(")
+      // push it as its own part before entering quoted mode. This prevents the
+      // surrounding text from being merged into the quoted content when we
+      // later push the quoted value.
+      if (current.trim()) {
+        parts.push(current.trim());
+        current = "";
+      }
       inQuotes = true;
       quoteChar = char;
       continue;
@@ -36,8 +44,11 @@ export function parseCommand(content: string): ParsedCommand {
 
     if (char === quoteChar && inQuotes) {
       inQuotes = false;
+      // Preserve the surrounding quotes in the parsed part so callers that
+      // reassemble the expression (e.g. declare handlers) keep string literals
+      // intact instead of losing quote characters.
+      parts.push(quoteChar + current + quoteChar);
       quoteChar = "";
-      parts.push(current);
       current = "";
       continue;
     }
@@ -129,10 +140,12 @@ export class CommandHandler {
     this.register("declare", (args, evaluator) => {
       if (!evaluator) return;
       if (args.length < 3) return; // name, '=', expr
+      
       const varNameRaw = args[0];
       let exprParts = args.slice(1);
       if (exprParts[0] === "=") exprParts = exprParts.slice(1);
       const expr = exprParts.join(" ");
+      
       
       const key = varNameRaw.startsWith("$") ? varNameRaw.slice(1) : varNameRaw;
       

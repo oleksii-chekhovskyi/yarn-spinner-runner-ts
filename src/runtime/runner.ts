@@ -10,6 +10,7 @@ export interface RunnerOptions {
   functions?: Record<string, (...args: unknown[]) => unknown>;
   handleCommand?: (command: string, parsed?: ReturnType<typeof parseCommand>) => void;
   commandHandler?: CommandHandler;
+  onStoryEnd?: (payload: { variables: Readonly<Record<string, unknown>>; storyEnd: true }) => void;
 }
 
 const globalOnceSeen = new Set<string>();
@@ -23,6 +24,8 @@ export class YarnRunner {
   private readonly commandHandler: CommandHandler;
   private readonly evaluator: ExpressionEvaluator;
   private readonly onceSeen = globalOnceSeen;
+  private readonly onStoryEnd?: RunnerOptions["onStoryEnd"];
+  private storyEnded = false;
   private readonly nodeGroupOnceSeen = globalNodeGroupOnceSeen;
   private readonly visitCounts: Record<string, number> = {};
 
@@ -95,6 +98,7 @@ export class YarnRunner {
       ...(opts.functions ?? {}),
     } as Record<string, (...args: unknown[]) => unknown>;
     this.handleCommand = opts.handleCommand;
+    this.onStoryEnd = opts.onStoryEnd;
     this.evaluator = new ExpressionEvaluator(this.variables, this.functions, this.program.enums);
     this.commandHandler = opts.commandHandler ?? new CommandHandler(this.variables);
     this.nodeTitle = opts.startAt;
@@ -589,6 +593,14 @@ export class YarnRunner {
   private emit(res: RuntimeResult) {
     this.currentResult = res;
     this.history.push(res);
+    if (res.isDialogueEnd && !this.storyEnded && this.callStack.length === 0) {
+      this.storyEnded = true;
+      if (this.onStoryEnd) {
+        // Create a readonly copy of the variables
+        const variablesCopy = Object.freeze({ ...this.variables });
+        this.onStoryEnd({ storyEnd: true, variables: variablesCopy });
+      }
+    }
     // If we ended a detour node, return to caller after emitting last result
     // Position is restored here, but we wait for next advance() to continue
     if (res.isDialogueEnd && this.callStack.length > 0) {

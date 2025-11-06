@@ -1,7 +1,7 @@
 import React from "react";
 import type { MarkupParseResult, MarkupWrapper } from "../markup/types.js";
 
-const DEFAULT_HTML_TAGS = new Set(["b", "em", "small", "strong", "sub", "sup", "ins", "del", "mark"]);
+const DEFAULT_HTML_TAGS = new Set(["b", "em", "small", "strong", "sub", "sup", "ins", "del", "mark", "br"]);
 
 interface RenderPiece {
   text: string;
@@ -107,4 +107,3 @@ function createWrapperElement(
 function sanitizeClassName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
 }
-
