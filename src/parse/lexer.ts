@@ -34,7 +34,12 @@ export function lex(input: string): Token[] {
     const indent = raw.match(/^[ \t]*/)?.[0] ?? "";
     const content = raw.slice(indent.length);
 
-    // Manage indentation tokens only within node bodies
+    if (content.trim() === "") {
+      push("EMPTY", "", lineNum, 1);
+      continue;
+    }
+
+    // Manage indentation tokens only within node bodies and on non-empty lines
     if (!inHeaders) {
       const prev = indentStack[indentStack.length - 1];
       if (indent.length > prev) {
@@ -46,11 +51,6 @@ export function lex(input: string): Token[] {
           push("DEDENT", "", lineNum, 1);
         }
       }
-    }
-
-    if (content.trim() === "") {
-      push("EMPTY", "", lineNum, 1);
-      continue;
     }
 
     if (content === "---") {

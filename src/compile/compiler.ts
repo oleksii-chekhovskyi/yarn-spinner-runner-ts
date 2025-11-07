@@ -72,7 +72,7 @@ export function compile(doc: YarnDocument, opts: CompileOptions = {}): IRProgram
             }
             block.push({
               op: "options",
-              options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, markup: o.markup, block: emitBlock(o.body) })),
+              options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, markup: o.markup, condition: o.condition, block: emitBlock(o.body) })),
             });
             break;
           }
@@ -141,7 +141,7 @@ export function compile(doc: YarnDocument, opts: CompileOptions = {}): IRProgram
                 }
                 block.push({
                   op: "options",
-                  options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, markup: o.markup, block: emitBlock(o.body) })),
+                  options: s.options.map((o: Option) => ({ text: o.text, tags: ensureLineId(o.tags), css: (o as any).css, markup: o.markup, condition: o.condition, block: emitBlock(o.body) })),
                 });
                 break;
               }

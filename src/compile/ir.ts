@@ -22,7 +22,7 @@ export type IRInstruction =
   | { op: "command"; content: string }
   | { op: "jump"; target: string }
   | { op: "detour"; target: string }
-  | { op: "options"; options: Array<{ text: string; tags?: string[]; css?: string; markup?: MarkupParseResult; block: IRInstruction[] }> }
+  | { op: "options"; options: Array<{ text: string; tags?: string[]; css?: string; markup?: MarkupParseResult; condition?: string; block: IRInstruction[] }> }
   | { op: "if"; branches: Array<{ condition: string | null; block: IRInstruction[] }> }
   | { op: "once"; id: string; block: IRInstruction[] };
 

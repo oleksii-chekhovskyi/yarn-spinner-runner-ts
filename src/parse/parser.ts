@@ -216,8 +216,9 @@ class Parser {
     while (this.at("OPTION")) {
       const raw = this.take("OPTION").text;
       const { cleanText: textWithAttrs, tags } = this.extractTags(raw);
-      const { text: textWithoutCss, css } = this.extractCss(textWithAttrs);
-      const markup = parseMarkup(textWithoutCss);
+      const { text: textWithCondition, css } = this.extractCss(textWithAttrs);
+      const { text: optionText, condition } = this.extractOptionCondition(textWithCondition);
+      const markup = parseMarkup(optionText);
       let body: Statement[] = [];
       if (this.at("INDENT")) {
         this.take("INDENT");
@@ -232,6 +233,7 @@ class Parser {
         tags,
         css,
         markup: this.normalizeMarkup(markup),
+        condition,
       });
       // Consecutive options belong to the same group; break on non-OPTION
       while (this.at("EMPTY")) this.i++;
@@ -289,6 +291,15 @@ class Parser {
       const css = cssMatch[1].trim();
       const text = input.replace(cssMatch[0], "").trimEnd();
       return { text, css };
+    }
+    return { text: input };
+  }
+
+  private extractOptionCondition(input: string): { text: string; condition?: string } {
+    const match = input.match(/\s\[\s*if\s+([^\]]+)\]\s*$/i);
+    if (match) {
+      const text = input.slice(0, match.index).trimEnd();
+      return { text, condition: match[1].trim() };
     }
     return { text: input };
   }

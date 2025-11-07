@@ -16,6 +16,15 @@ export interface RunnerOptions {
 const globalOnceSeen = new Set<string>();
 const globalNodeGroupOnceSeen = new Set<string>(); // Track "once" nodes in groups: "title#index"
 
+type CompiledOption = {
+  text: string;
+  tags?: string[];
+  css?: string;
+  markup?: MarkupParseResult;
+  condition?: string;
+  block: IRInstruction[];
+};
+
 export class YarnRunner {
   private readonly program: IRProgram;
   private readonly variables: Record<string, unknown>;
@@ -28,6 +37,7 @@ export class YarnRunner {
   private storyEnded = false;
   private readonly nodeGroupOnceSeen = globalNodeGroupOnceSeen;
   private readonly visitCounts: Record<string, number> = {};
+  private pendingOptions: CompiledOption[] | null = null;
 
   private nodeTitle: string;
   private ip = 0; // instruction pointer within node
@@ -193,15 +203,13 @@ export class YarnRunner {
     // If awaiting option selection, consume chosen option by pushing its block
     if (this.currentResult?.type === "options") {
       if (optionIndex == null) throw new Error("Option index required");
-      // Resolve to actual node (handles groups)
-      const node = this.resolveNode(this.nodeTitle);
-      // We encoded options at ip-1; locate it
-      const ins = node.instructions[this.ip - 1];
-      if (ins?.op !== "options") throw new Error("Invalid options state");
-      const chosen = ins.options[optionIndex];
+      const options = this.pendingOptions;
+      if (!options) throw new Error("Invalid options state");
+      const chosen = options[optionIndex];
       if (!chosen) throw new Error("Invalid option index");
       // Push a block frame that we will resume across advances
       this.callStack.push({ kind: "block", title: this.nodeTitle, ip: this.ip, block: chosen.block, idx: 0 });
+      this.pendingOptions = null;
       if (this.resumeBlock()) return;
       return;
     }
@@ -388,7 +396,19 @@ export class YarnRunner {
           return true;
         }
         case "options": {
-          this.emit({ type: "options", options: ins.options.map((o) => ({ text: o.text, tags: o.tags, markup: o.markup })), isDialogueEnd: false });
+          const available = this.filterOptions(ins.options);
+          if (available.length === 0) {
+            continue;
+          }
+          this.pendingOptions = available;
+          this.emit({
+            type: "options",
+            options: available.map((o) => {
+              const { text: interpolatedText, markup: interpolatedMarkup } = this.interpolate(o.text, o.markup);
+              return { text: interpolatedText, tags: o.tags, markup: interpolatedMarkup };
+            }),
+            isDialogueEnd: false,
+          });
           return true;
         }
         case "if": {
@@ -473,7 +493,21 @@ export class YarnRunner {
           continue;
         }
         case "options": {
-          this.emit({ type: "options", options: ins.options.map((o: { text: string; tags?: string[]; css?: string; markup?: MarkupParseResult }) => ({ text: o.text, tags: o.tags, css: o.css, markup: o.markup })), nodeCss: resolved.css, scene: resolved.scene, isDialogueEnd: this.lookaheadIsEnd() });
+          const available = this.filterOptions(ins.options);
+          if (available.length === 0) {
+            continue;
+          }
+          this.pendingOptions = available;
+          this.emit({
+            type: "options",
+            options: available.map((o) => {
+              const { text: interpolatedText, markup: interpolatedMarkup } = this.interpolate(o.text, o.markup);
+              return { text: interpolatedText, tags: o.tags, css: o.css, markup: interpolatedMarkup };
+            }),
+            nodeCss: resolved.css,
+            scene: resolved.scene,
+            isDialogueEnd: this.lookaheadIsEnd(),
+          });
           return;
         }
         case "if": {
@@ -531,11 +565,24 @@ export class YarnRunner {
           this.emit({ type: "command", command: ins.content, isDialogueEnd: false });
           restore();
           return;
-        case "options":
-          this.emit({ type: "options", options: ins.options.map((o) => ({ text: o.text, markup: o.markup })), isDialogueEnd: false });
+        case "options": {
+          const available = this.filterOptions(ins.options);
+          if (available.length === 0) {
+            continue;
+          }
+          this.pendingOptions = available;
+          this.emit({
+            type: "options",
+            options: available.map((o) => {
+              const { text: interpolatedText, markup: interpolatedMarkup } = this.interpolate(o.text, o.markup);
+              return { text: interpolatedText, markup: interpolatedMarkup };
+            }),
+            isDialogueEnd: false,
+          });
           // Maintain context that options belong to main node at ip-1
           restore();
           return;
+        }
         case "if": {
           const branch = ins.branches.find((b) => (b.condition ? this.evaluator.evaluate(b.condition) : true));
           if (branch) {
@@ -575,6 +622,24 @@ export class YarnRunner {
     // Block produced no output; resume
     restore();
     this.step();
+  }
+
+  private filterOptions(options: CompiledOption[]): CompiledOption[] {
+    const available: CompiledOption[] = [];
+    for (const option of options) {
+      if (!option.condition) {
+        available.push(option);
+        continue;
+      }
+      try {
+        if (this.evaluator.evaluate(option.condition)) {
+          available.push(option);
+        }
+      } catch {
+        // Treat errors as false conditions
+      }
+    }
+    return available;
   }
 
   private lookaheadIsEnd(): boolean {

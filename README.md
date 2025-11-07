@@ -29,6 +29,7 @@ TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter
 * ✅ Support for:
   * Lines with speakers
   * Options with indented bodies
+  * Inline option conditions via `[if expression]`
   * `<<if>>/<<elseif>>/<<else>>/<<endif>>` blocks
   * `<<once>>...<<endonce>>` blocks
   * `<<jump NodeName>>` commands
@@ -89,6 +90,23 @@ console.log(runner.currentResult); // TextResult, OptionsResult, or CommandResul
 runner.advance(); // Continue text
 runner.advance(0); // Choose option 0
 ```
+
+### Inline conditional options
+
+You can add a per-option condition by appending `[if expression]` to the option text. The expression is evaluated when the option list is emitted; options whose expression evaluates to `false` are dropped before the runner shows them.
+
+```yarn
+title: Hub
+---
+<<declare $hasBadge = false>>
+-> Ask about the badge [if $hasBadge]
+    Narrator: You flash the badge.
+-> Offer a bribe
+    Narrator: You slide some eddies across the table.
+===
+```
+
+Once some branch executes `<<set $hasBadge = true>>`, the badge option automatically appears alongside the other entries, without extra `<<if>>` blocks.
 
 ### React Usage
 

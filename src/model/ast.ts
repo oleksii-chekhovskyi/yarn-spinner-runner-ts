@@ -73,6 +73,7 @@ export interface Option {
   tags?: string[];
   css?: string; // Custom CSS style for option
   markup?: MarkupParseResult;
+  condition?: string;
 }
 
 export interface IfBlock {

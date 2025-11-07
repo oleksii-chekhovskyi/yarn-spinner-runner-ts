@@ -8,11 +8,12 @@ import type { SceneCollection } from "../scene/types.js";
 const DEFAULT_YARN = `title: Start
 scene: scene1
 ---
+<< declare $hasBadge = false >>
 Narrator: Welcome to [b]yarn-spinner-ts[/b], {$playerName}!
 Narrator: Current street cred: {$reputation}
 npc: This is a dialogue system powered by Yarn Spinner.
 Narrator: Click anywhere to continue, or choose an option below.
--> Start the adventure &css{backgroundColor: #4a9eff; color: white;}
+-> Start the adventure &css{backgroundColor: #4a9eff; color: white;} [if $hasBadge]
     Narrator: Great! Let's begin your journey.
     <<jump NextScene>>
 -> Learn more &css{backgroundColor: #2ecc71; color: red;}

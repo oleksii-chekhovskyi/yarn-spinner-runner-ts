@@ -110,10 +110,11 @@ export class ExpressionEvaluator {
 
   private evaluateComparison(expr: string): boolean {
     // Match comparison operators (avoid matching !=, <=, >=)
-    const match = expr.match(/^(.+?)\s*(===|!==|<=|>=|<|>)\s*(.+)$/);
+    const match = expr.match(/^(.+?)\s*(===|==|!==|!=|=|<=|>=|<|>)\s*(.+)$/);
     if (!match) throw new Error(`Invalid comparison: ${expr}`);
 
-    const [, left, op, right] = match;
+    const [, left, rawOp, right] = match;
+    const op = rawOp === "=" ? "==" : rawOp;
     const leftVal = this.evaluateExpression(left.trim());
     const rightVal = this.evaluateExpression(right.trim());
 
