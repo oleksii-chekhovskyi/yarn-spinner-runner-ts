@@ -91,6 +91,8 @@ runner.advance(); // Continue text
 runner.advance(0); // Choose option 0
 ```
 
+> Variables passed from your host app can be provided as `score` or `$score`; the runner normalizes keys so either style works.
+
 ### Inline conditional options
 
 You can add a per-option condition by appending `[if expression]` to the option text. The expression is evaluated when the option list is emitted; options whose expression evaluates to `false` are dropped before the runner shows them.

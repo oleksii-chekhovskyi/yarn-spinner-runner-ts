@@ -52,7 +52,13 @@ export class YarnRunner {
 
   constructor(program: IRProgram, opts: RunnerOptions) {
     this.program = program;
-    this.variables = { ...(opts.variables ?? {}) };
+    this.variables = {};
+    if (opts.variables) {
+      for (const [key, value] of Object.entries(opts.variables)) {
+        const normalizedKey = key.startsWith("$") ? key.slice(1) : key;
+        this.variables[normalizedKey] = value;
+      }
+    }
     this.functions = {
       // Default conversion helpers
       string: (v: unknown) => String(v ?? ""),

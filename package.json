@@ -1,6 +1,6 @@
 {
   "name": "yarn-spinner-runner-ts",
-  "version": "0.1.5-a",
+  "version": "0.1.5-b",
   "private": false,
   "description": "TypeScript parser, compiler, and runtime for Yarn Spinner 3.x with React adapter [NPM package](https://www.npmjs.com/package/yarn-spinner-runner-ts)",
   "license": "MIT",

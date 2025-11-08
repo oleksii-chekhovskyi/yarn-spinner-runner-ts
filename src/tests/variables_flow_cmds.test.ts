@@ -141,4 +141,38 @@ Narrator: Score now {$score}
   strictEqual(runner.getVariable("score"), 20, "Final numeric value should be 20");
 });
 
+test("variables passed from host accept $ prefix and mutate via arithmetic set", () => {
+  const script = `
+title: HostVars
+---
+Narrator: Start {$reputation}
+<<set $reputation = $reputation - 25 >>
+Narrator: After {$reputation}
+===
+`;
+
+  const doc = parseYarn(script);
+  const ir = compile(doc);
+  const runner = new YarnRunner(ir, { startAt: "HostVars", variables: { $reputation: 100 } });
+
+  const lines: string[] = [];
+  for (let guard = 0; guard < 20; guard++) {
+    const result = runner.currentResult;
+    if (!result) break;
+    if (result.type === "text" && result.text.trim()) {
+      lines.push(result.text.trim());
+    }
+    if (result.isDialogueEnd) break;
+    if (result.type === "options") {
+      runner.advance(0);
+    } else {
+      runner.advance();
+    }
+  }
+
+  strictEqual(lines.includes("Start 100"), true, "Initial host variable should be visible");
+  strictEqual(lines.includes("After 75"), true, "Arithmetic mutation should be reflected");
+  strictEqual(runner.getVariable("reputation"), 75, "Runner variable store should update");
+});
+
 
