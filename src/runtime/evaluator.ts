@@ -32,7 +32,7 @@ export class ExpressionEvaluator {
     if (!trimmed) return false;
 
     // Handle function calls like `functionName(arg1, arg2)`
-    if (trimmed.includes("(") && trimmed.includes(")")) {
+    if (this.looksLikeFunctionCall(trimmed)) {
       return this.evaluateFunctionCall(trimmed);
     }
 
@@ -50,6 +50,11 @@ export class ExpressionEvaluator {
     if (trimmed.startsWith("!")) {
       return !this.evaluateExpression(trimmed.slice(1).trim());
     }
+
+     // Handle arithmetic expressions (+, -, *, /, %)
+     if (this.containsArithmetic(trimmed)) {
+       return this.evaluateArithmetic(trimmed);
+     }
 
     // Simple variable or literal
     return this.resolveValue(trimmed);
@@ -106,6 +111,177 @@ export class ExpressionEvaluator {
 
   private containsComparison(expr: string): boolean {
     return /[<>=!]/.test(expr);
+  }
+
+  private looksLikeFunctionCall(expr: string): boolean {
+    return /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(.*\)$/.test(expr);
+  }
+
+  private containsArithmetic(expr: string): boolean {
+    // Remove quoted strings to avoid false positives on "-" or "+" inside literals
+    const unquoted = expr.replace(/"[^"]*"|'[^']*'/g, "");
+    return /[+\-*/%]/.test(unquoted);
+  }
+
+  private evaluateArithmetic(expr: string): number {
+    const input = expr;
+    let index = 0;
+
+    const skipWhitespace = () => {
+      while (index < input.length && /\s/.test(input[index])) {
+        index++;
+      }
+    };
+
+    const toNumber = (value: unknown): number => {
+      if (typeof value === "number") return value;
+      if (typeof value === "boolean") return value ? 1 : 0;
+      if (value == null || value === "") return 0;
+      const num = Number(value);
+      if (Number.isNaN(num)) {
+        throw new Error(`Cannot convert ${String(value)} to number`);
+      }
+      return num;
+    };
+
+    const readToken = (): string => {
+      skipWhitespace();
+      const start = index;
+      let depth = 0;
+      let inQuotes = false;
+      let quoteChar = "";
+
+      while (index < input.length) {
+        const char = input[index];
+        if (inQuotes) {
+          if (char === quoteChar) {
+            inQuotes = false;
+            quoteChar = "";
+          }
+          index++;
+          continue;
+        }
+
+        if (char === '"' || char === "'") {
+          inQuotes = true;
+          quoteChar = char;
+          index++;
+          continue;
+        }
+
+        if (char === "(") {
+          depth++;
+          index++;
+          continue;
+        }
+
+        if (char === ")") {
+          if (depth === 0) break;
+          depth--;
+          index++;
+          continue;
+        }
+
+        if (depth === 0 && "+-*/%".includes(char)) {
+          break;
+        }
+
+        if (depth === 0 && /\s/.test(char)) {
+          break;
+        }
+
+        index++;
+      }
+
+      return input.slice(start, index).trim();
+    };
+
+    const parsePrimary = (): unknown => {
+      skipWhitespace();
+      if (index >= input.length) {
+        throw new Error("Unexpected end of expression");
+      }
+
+      const char = input[index];
+      if (char === "(") {
+        index++;
+        const value = parseAddSub();
+        skipWhitespace();
+        if (input[index] !== ")") {
+          throw new Error("Unmatched parenthesis in expression");
+        }
+        index++;
+        return value;
+      }
+
+      const token = readToken();
+      if (!token) {
+        throw new Error("Invalid expression token");
+      }
+      return this.evaluateExpression(token);
+    };
+
+    const parseUnary = (): number => {
+      skipWhitespace();
+      if (input[index] === "+") {
+        index++;
+        return parseUnary();
+      }
+      if (input[index] === "-") {
+        index++;
+        return -parseUnary();
+      }
+      return toNumber(parsePrimary());
+    };
+
+    const parseMulDiv = (): number => {
+      let value = parseUnary();
+      while (true) {
+        skipWhitespace();
+        const char = input[index];
+        if (char === "*" || char === "/" || char === "%") {
+          index++;
+          const right = parseUnary();
+          if (char === "*") {
+            value = value * right;
+          } else if (char === "/") {
+            value = value / right;
+          } else {
+            value = value % right;
+          }
+          continue;
+        }
+        break;
+      }
+      return value;
+    };
+
+    const parseAddSub = (): number => {
+      let value = parseMulDiv();
+      while (true) {
+        skipWhitespace();
+        const char = input[index];
+        if (char === "+" || char === "-") {
+          index++;
+          const right = parseMulDiv();
+          if (char === "+") {
+            value = value + right;
+          } else {
+            value = value - right;
+          }
+          continue;
+        }
+        break;
+      }
+      return value;
+    };
+
+    const result = parseAddSub();
+    skipWhitespace();
+    if (index < input.length) {
+      throw new Error(`Unexpected token "${input.slice(index)}" in expression`);
+    }
+    return result;
   }
 
   private evaluateComparison(expr: string): boolean {

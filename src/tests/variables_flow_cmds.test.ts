@@ -74,4 +74,71 @@ title: Start
   strictEqual(seen.includes("Not equals ok"), true, "Not equals comparison should succeed");
 });
 
+test("set command supports equals syntax with arithmetic reassignment", () => {
+  const script = `
+title: StreetCred
+---
+<<set $reputation = 100>>
+<<set $reputation = $reputation - 25 >>
+Narrator: Current street cred: {$reputation}
+===
+`;
+
+  const doc = parseYarn(script);
+  const ir = compile(doc);
+  const runner = new YarnRunner(ir, { startAt: "StreetCred" });
+
+  const seen: string[] = [];
+  for (let guard = 0; guard < 20; guard++) {
+    const result = runner.currentResult;
+    if (!result) break;
+    if (result.type === "text" && result.text.trim()) {
+      seen.push(result.text.trim());
+    }
+    if (result.isDialogueEnd) break;
+    if (result.type === "options") {
+      runner.advance(0);
+    } else {
+      runner.advance();
+    }
+  }
+
+  strictEqual(seen.includes("Current street cred: 75"), true, "Should reflect arithmetic subtraction");
+  strictEqual(runner.getVariable("reputation"), 75, "Variable should store updated numeric value");
+});
+
+test("set command respects arithmetic precedence and parentheses", () => {
+  const script = `
+title: MathChecks
+---
+<<set $score = 10>>
+<<set $score = $score + 10 * 2>>
+<<set $score = ($score + 10) / 2>>
+Narrator: Score now {$score}
+===
+`;
+
+  const doc = parseYarn(script);
+  const ir = compile(doc);
+  const runner = new YarnRunner(ir, { startAt: "MathChecks" });
+
+  const lines: string[] = [];
+  for (let guard = 0; guard < 20; guard++) {
+    const result = runner.currentResult;
+    if (!result) break;
+    if (result.type === "text" && result.text.trim()) {
+      lines.push(result.text.trim());
+    }
+    if (result.isDialogueEnd) break;
+    if (result.type === "options") {
+      runner.advance(0);
+    } else {
+      runner.advance();
+    }
+  }
+
+  strictEqual(lines.includes("Score now 20"), true, "Should honor operator precedence and parentheses");
+  strictEqual(runner.getVariable("score"), 20, "Final numeric value should be 20");
+});
+
 

@@ -108,6 +108,16 @@ title: Hub
 
 Once some branch executes `<<set $hasBadge = true>>`, the badge option automatically appears alongside the other entries, without extra `<<if>>` blocks.
 
+### Arithmetic assignments
+
+`<<set>>` accepts both `to` and `=` aliases and evaluates the expression on the right-hand side, so you can modify variables inline—operator precedence and parentheses all work the same way they do in Yarn Spinner:
+
+```yarn
+<<set $reputation = $reputation - 25 >>
+<<set $score = ($score + 10) / 2>>
+Narrator: Current street cred: {$reputation}, score: {$score}
+```
+
 ### React Usage
 
 ```tsx
