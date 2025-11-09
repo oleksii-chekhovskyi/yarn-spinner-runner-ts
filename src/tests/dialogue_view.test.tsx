@@ -24,3 +24,32 @@ Narrator: Hello {$playerName}!
     "Expected rendered dialogue to include the interpolated variable value from props"
   );
 });
+
+test("DialogueView keeps scene visible during command results", () => {
+  const yarn = `
+title: Run
+scene: street
+---
+<<set $score = 5>>
+Narrator: Done
+===`;
+
+  const program = compile(parseYarn(yarn));
+  const scenes = {
+    scenes: {
+      street: {
+        background: "bg.png",
+        actors: {},
+      },
+    },
+  };
+
+  const html = renderToStaticMarkup(
+    <DialogueView program={program} startNode="Run" scenes={scenes} variables={{}} />
+  );
+
+  ok(
+    html.includes("yd-scene"),
+    "Expected DialogueScene container even when the first result is a command"
+  );
+});

@@ -110,9 +110,18 @@ export function DialogueView({
     functions,
     variables,
   });
+
   const sceneName = result?.type === "text" || result?.type === "options" ? result.scene : undefined;
   const speaker = result?.type === "text" ? result.speaker : undefined;
   const sceneCollection = scenes || { scenes: {} };
+  const sceneElement = (
+    <DialogueScene
+      sceneName={sceneName}
+      speaker={speaker}
+      scenes={sceneCollection}
+      actorTransitionDuration={actorTransitionDuration}
+    />
+  );
 
   const [typingComplete, setTypingComplete] = useState(false);
   const [currentTextKey, setCurrentTextKey] = useState(0);
@@ -221,12 +230,7 @@ export function DialogueView({
 
     return (
       <div className="yd-container">
-        <DialogueScene
-          sceneName={sceneName}
-          speaker={speaker}
-          scenes={sceneCollection}
-          actorTransitionDuration={actorTransitionDuration}
-        />
+        {sceneElement}
         <div
           className={`yd-dialogue-box ${result.isDialogueEnd ? "yd-text-box-end" : ""} ${className || ""}`}
           style={nodeStyles} // Only apply dynamic node CSS
@@ -269,12 +273,7 @@ export function DialogueView({
     const nodeStyles = parseCss(result.nodeCss);
     return (
       <div className="yd-container">
-        <DialogueScene
-          sceneName={sceneName}
-          speaker={speaker}
-          scenes={sceneCollection}
-          actorTransitionDuration={actorTransitionDuration}
-        />
+        {sceneElement}
         <div className={`yd-options-container ${className || ""}`}>
           <div className="yd-options-box" style={nodeStyles}>
             <div className="yd-options-title">Choose an option:</div>
@@ -302,8 +301,11 @@ export function DialogueView({
   // Command result - auto-advance
   if (result.type === "command") {
     return (
-      <div className={`yd-command ${className || ""}`}>
-        <p>Executing: {result.command}</p>
+      <div className="yd-container">
+        {sceneElement}
+        <div className={`yd-command ${className || ""}`}>
+          <p>Executing: {result.command}</p>
+        </div>
       </div>
     );
   }

@@ -175,4 +175,84 @@ Narrator: After {$reputation}
   strictEqual(runner.getVariable("reputation"), 75, "Runner variable store should update");
 });
 
+test("host variables work with math helpers and propagate results", () => {
+  const script = `
+title: MathHost
+---
+Narrator: Incoming {$energy}
+<<set $energy = max($energy, 50)>>
+<<set $residual = floor($energy / 3)>>
+Narrator: After max {$energy}
+Narrator: Residual {$residual}
+===
+`;
+
+  const doc = parseYarn(script);
+  const ir = compile(doc);
+  const runner = new YarnRunner(ir, { startAt: "MathHost", variables: { $energy: 37 } });
+
+  const lines: string[] = [];
+  for (let guard = 0; guard < 20; guard++) {
+    const result = runner.currentResult;
+    if (!result) break;
+    if (result.type === "text" && result.text.trim()) {
+      lines.push(result.text.trim());
+    }
+    if (result.isDialogueEnd) break;
+    if (result.type === "options") {
+      runner.advance(0);
+    } else {
+      runner.advance();
+    }
+  }
+
+  strictEqual(lines.includes("Incoming 37"), true, "Should read initial host variable");
+  strictEqual(lines.includes("After max 50"), true, "max() should clamp the variable");
+  strictEqual(lines.includes("Residual 16"), true, "floor division should be reflected");
+  strictEqual(runner.getVariable("energy"), 50, "Host variable should hold updated max result");
+  strictEqual(runner.getVariable("residual"), 16, "New variables from math operations should be stored");
+});
+
+test("host variables use custom add/subtract functions", () => {
+  const script = `
+title: HostMathFns
+---
+Narrator: Credits {$credits}
+<<set $credits = add($credits, 25)>>
+<<set $credits = subtract($credits, 10)>>
+Narrator: Final {$credits}
+===
+`;
+
+  const doc = parseYarn(script);
+  const ir = compile(doc);
+  const runner = new YarnRunner(ir, {
+    startAt: "HostMathFns",
+    variables: { $credits: 15 },
+    functions: {
+      add: (a: unknown, b: unknown) => Number(a) + Number(b),
+      subtract: (a: unknown, b: unknown) => Number(a) - Number(b),
+    },
+  });
+
+  const lines: string[] = [];
+  for (let guard = 0; guard < 20; guard++) {
+    const result = runner.currentResult;
+    if (!result) break;
+    if (result.type === "text" && result.text.trim()) {
+      lines.push(result.text.trim());
+    }
+    if (result.isDialogueEnd) break;
+    if (result.type === "options") {
+      runner.advance(0);
+    } else {
+      runner.advance();
+    }
+  }
+
+  strictEqual(lines.includes("Credits 15"), true, "Should read initial credits");
+  strictEqual(lines.includes("Final 30"), true, "Custom add/subtract functions should apply math");
+  strictEqual(runner.getVariable("credits"), 30, "Stored variable should reflect final value");
+});
+
 
